@@ -1,507 +1,540 @@
 <!DOCTYPE html>
-<html lang="ja" class="scroll-smooth">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="KAZUKI NAKAI Portfolio - 次世代のマーケティングを、その手で切り拓く。">
-    <title>KAZUKI NAKAI | Portfolio</title>
-    
-    <!-- Tailwind CSS (CDN) -->
+    <title>Photo Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400&display=swap" rel="stylesheet">
 
     <style>
-        /* --- デザイン担当のこだわり設定 --- */
         :root {
             --color-gold: #c5a059;
-            --color-black: #111111;
-            --color-text: #333333;
-            --color-bg: #fdfcf8;
+            --color-bg-dark: #0a0a0a;  /* スライダー用の黒 */
+            --color-bg-light: #fdfcf8; /* 冒頭用の白 */
+            --color-text-dark: #333333;
+            --color-text-light: #e5e5e5;
+            --slide-width: 65vw;
+            --slide-margin: 3vw;
         }
 
-        body {
-            font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            line-height: 2.0;
-            letter-spacing: 0.08em;
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
             overflow-x: hidden;
+            background-color: var(--color-bg-dark); /* ベースは黒 */
+            color: var(--color-text-light);
+            font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+            letter-spacing: 0.08em;
+            position: relative;
         }
 
         .sans { font-family: 'Zen Kaku Gothic New', sans-serif; }
-        .en-font { font-family: 'Noto Serif JP', serif; }
-
-        /* 縦書きクラス */
-        .tategaki {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-        }
-
-        /* --- スクロールアニメーション --- */
-        .fade-in-section {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: opacity, transform;
-        }
         
-        .fade-in-section.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .color-transition {
-            transition: filter 2.5s ease-in-out, transform 0.8s ease;
-        }
-        
-        .hover-zoom {
-            overflow: hidden;
-        }
-        .hover-zoom:hover img {
-            transform: scale(1.05);
-        }
-
-        /* --- オープニング演出 --- */
-        #opening-curtain {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            z-index: 9999;
+        /* ページ最上部のみに配置（追従しない） */
+        .back-btn {
+            position: absolute;
+            top: 4vh;
+            left: 4vw;
+            z-index: 999;
+            color: var(--color-text-dark); /* 白背景の上に乗るので暗い色 */
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: opacity 1.5s ease-out, visibility 1.5s;
+            gap: 8px;
+            transition: all 0.3s;
+            background: transparent;
+            padding: 0;
+            text-decoration: none;
         }
-        
-        .opening-text {
+        .back-btn:hover {
+            opacity: 0.6;
             color: var(--color-gold);
-            font-size: 1.2rem;
-            letter-spacing: 0.5em;
-            animation: text-pulse 2s infinite;
         }
 
-        .hidden-curtain {
-            opacity: 0;
-            visibility: hidden;
+        /* セクションごとの枠組み */
+        .portfolio-section {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+        }
+
+        /* 冒頭コンセプト用の背景装飾（白背景ベース） */
+        .hero-bg {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            background-image: radial-gradient(circle at top right, rgba(197, 160, 89, 0.05) 0%, transparent 50%),
+                              radial-gradient(circle at bottom left, rgba(197, 160, 89, 0.05) 0%, transparent 50%);
+        }
+
+        /* PC用：タイトル装飾 */
+        .title-overlay {
+            position: absolute;
+            top: 6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 100;
             pointer-events: none;
         }
 
-        @keyframes text-pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
+        .category-info {
+            position: absolute;
+            bottom: 8vh;
+            left: 5vw;
+            z-index: 100;
+            pointer-events: none;
         }
 
-        /* 見出し装飾 */
-        .section-title {
+        /* スライダー領域の設定（黒背景ベース） */
+        .slider-viewport {
             position: relative;
-            display: inline-block;
-            margin-bottom: 3rem;
-            font-size: 2rem;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            background-image: repeating-linear-gradient(45deg, #161616 25%, transparent 25%, transparent 75%, #161616 75%, #161616), repeating-linear-gradient(45deg, #161616 25%, #0a0a0a 25%, #0a0a0a 75%, #161616 75%, #161616);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
         }
-        .section-title::after, .section-title-gold::after {
+
+        .slider-viewport::before {
             content: '';
             position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 1px;
-            background-color: var(--color-gold);
-        }
-        .section-title-gold::after {
-            width: 60px;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(10,10,10,0.8) 100%);
+            pointer-events: none;
+            z-index: 10;
         }
 
-        @media (max-width: 768px) {
-            .tategaki-md {
-                writing-mode: horizontal-tb;
+        .slider-track {
+            display: flex;
+            align-items: center;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+            z-index: 20;
+        }
+
+        .slide {
+            flex: 0 0 var(--slide-width);
+            height: auto; 
+            max-height: 70vh;
+            margin: 0 var(--slide-margin);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s ease;
+            opacity: 0.15;
+            transform: scale(0.85);
+            filter: grayscale(100%) opacity(0.5); 
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            filter: grayscale(0%) opacity(1);
+        }
+
+        .slide img {
+            max-width: 100%;
+            max-height: 70vh;
+            height: auto; 
+            width: auto;
+            object-fit: contain;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(197, 160, 89, 0.2);
+            background-color: #111; 
+            padding: 4px; 
+        }
+
+        /* 矢印のデザイン */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--color-gold);
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-gold);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        @media (hover: hover) {
+            .nav-arrow:hover {
+                color: #0a0a0a;
+                background: var(--color-gold);
+                transform: translateY(-50%) scale(1.05);
             }
+        }
+        .arrow-left { left: 4vw; }
+        .arrow-right { right: 4vw; }
+
+        /* ドット（インジケーター）のデザイン */
+        .dots {
+            position: absolute;
+            bottom: 6vh;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            z-index: 100;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #333;
+            transition: all 0.5s;
+            cursor: pointer;
+        }
+        .dot.active {
+            background-color: var(--color-gold);
+            transform: scale(1.8);
+        }
+
+        /* =========================================
+            スマホ（SP）用の調整
+            ========================================= */
+        @media (max-width: 768px) {
+            :root {
+                --slide-width: 85vw; 
+                --slide-margin: 2vw;
+            }
+
+            .title-overlay { display: none; }
+
+            .category-info {
+                position: relative;
+                bottom: auto; left: auto; top: auto; transform: none;
+                width: 100%;
+                padding: 10vh 6vw 2vh 6vw; 
+                text-align: center;
+                z-index: 50;
+            }
+
+            .category-info h2 {
+                font-size: 1.6rem; 
+                margin-bottom: 0.8rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .category-info h2 span {
+                margin-left: 0;
+                margin-top: 0.3rem;
+                display: block;
+            }
+            .category-info p {
+                font-size: 10px;
+                line-height: 2.0; 
+            }
+
+            .slider-viewport {
+                height: auto;
+                min-height: 60vh;
+                padding-bottom: 8vh;
+            }
+
+            .slide img {
+                max-height: 65vh;
+                width: auto;
+                max-width: 100%;
+            }
+
+            .nav-arrow {
+                top: calc(50% - 4vh); 
+                width: 36px;
+                height: 36px;
+            }
+            .arrow-left { left: 2vw; }
+            .arrow-right { right: 2vw; }
+            .dots { bottom: 2vh; }
         }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- オープニング -->
-    <div id="opening-curtain">
-        <div class="opening-text tategaki">完成することのないポートフォリオ</div>
-    </div>
+    <a href="https://nakazu201-oss.github.io/my-ai-blog-/" class="back-btn sans uppercase">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        BACK TO PROFILE
+    </a>
 
-    <!-- ヘッダー -->
-    <header class="fixed top-0 left-0 w-full z-50 px-6 py-6 flex justify-between items-start mix-blend-multiply pointer-events-none">
-        <div class="text-lg tracking-widest font-bold pointer-events-auto">
-            <span class="text-[#c5a059]">K</span>N
+    <!-- ▼▼ 第0セクション：コンセプト＆カテゴリ概要（ここを白系に） ▼▼ -->
+    <section class="portfolio-section hero-bg flex flex-col justify-center items-center py-24 px-6 md:px-12">
+        
+        <!-- コンセプトメッセージ -->
+        <div class="text-center max-w-3xl mx-auto mt-12 md:mt-0">
+            <h1 class="text-2xl md:text-4xl tracking-[0.2em] mb-6 text-gray-800 leading-tight">
+                Creative for Direction
+                <span class="block text-xs md:text-sm text-[#c5a059] tracking-[0.4em] mt-4 sans uppercase">ディレクションの精度を高める、クリエイターの視点</span>
+            </h1>
+            <div class="w-[1px] h-10 bg-[#c5a059] mx-auto mb-8 opacity-50"></div>
+            <p class="text-xs md:text-sm text-gray-600 tracking-[0.15em] leading-[2.2] sans text-justify md:text-center">
+                WEBマーケティングにおいて、クリエイティブの質はプロジェクトの成否を大きく左右します。<br class="hidden md:block">
+                単なる進行管理にとどまらず、本質的な課題解決を導く「スーパー営業マン」であるために。<br class="hidden md:block">
+                私自身がクリエイターとなることで、制作のリアルな空気と技術を理解し、<br class="hidden md:block">
+                解像度が高く、より血の通った精度の高いディレクションを実現します。
+            </p>
         </div>
-        <div class="hidden md:block tategaki text-xs text-gray-400 tracking-widest h-24 border-l border-gray-300 pl-2"></div>
-    </header>
 
-    <main>
-        <!-- キービジュアル (KV) -->
-        <section class="relative min-h-screen w-full flex flex-col md:flex-row items-center justify-center overflow-hidden pt-20 pb-20">
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[60vh] h-[60vh] border border-[#c5a059] rounded-full opacity-20 pointer-events-none z-0"></div>
-
-            <div class="z-10 md:absolute md:right-[15%] md:top-[20%] fade-in-section delay-300 mb-12 md:mb-0 text-center md:text-left">
-                <h1 class="tategaki text-5xl md:text-7xl font-medium tracking-wide leading-relaxed h-[400px] mx-auto md:mx-0">
-                    仲井 千貴
-                    <span class="block mt-6 text-sm text-[#c5a059] sans tracking-[0.3em]">KAZUKI NAKAI</span>
-                </h1>
-            </div>
-
-            <div class="z-10 mt-4 md:mt-0 md:absolute md:left-[15%] md:bottom-[20%] fade-in-section delay-500 mb-10 md:mb-0 px-4 md:px-0">
-                <p class="tategaki-md text-base md:text-xl leading-loose tracking-widest text-gray-700 text-center md:text-left">
-                    次世代の<br class="md:hidden">マーケティングを、<br>その手で切り拓く。
+        <!-- 3つのカテゴリー紹介 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-5xl mx-auto mt-20 items-stretch">
+            
+            <!-- Category: Photography -->
+            <a href="#slider1" class="group flex flex-col h-full border border-[#c5a059]/30 bg-white p-8 md:p-10 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-[#c5a059]/10 cursor-pointer">
+                <span class="text-[#c5a059] text-[10px] tracking-[0.3em] sans uppercase mb-3 block">Category 01</span>
+                <h3 class="text-xl md:text-2xl tracking-[0.15em] mb-5 text-gray-800">Photography</h3>
+                <p class="text-[11px] md:text-xs text-gray-500 tracking-[0.1em] leading-[2.2] sans mb-8 flex-grow">
+                    静物から人物まで、光と影を操り、<br>
+                    被写体の本質と隠された物語を<br class="block md:hidden">引き出します。
                 </p>
-            </div>
-
-            <div class="z-0 w-72 h-96 md:w-[400px] md:h-[550px] relative fade-in-section hover-zoom shadow-2xl mx-auto">
-                <img id="profile-img" src="profile2.JPG" alt="Kazuki Nakai" class="w-full h-full object-cover grayscale color-transition">
-                <div class="absolute top-4 left-4 w-full h-full border border-[#c5a059] -z-10"></div>
-            </div>
-        </section>
-
-        <!-- KPI SECTION -->
-        <section class="py-24 bg-white relative overflow-hidden">
-            <div class="absolute inset-0 opacity-30" style="background-image: repeating-linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), repeating-linear-gradient(45deg, #f0f0f0 25%, #fdfcf8 25%, #fdfcf8 75%, #f0f0f0 75%, #f0f0f0); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
-            
-            <div class="container mx-auto px-6 max-w-4xl relative z-10 fade-in-section">
-                <div class="flex flex-col items-center text-center">
-                    <span class="text-[#c5a059] text-xs tracking-[0.5em] mb-8 sans uppercase">Philosophy</span>
-                    
-                    <div class="mb-12 md:mb-16 flex justify-center w-full px-4">
-                        <img src="transparent_image.png" alt="失敗という名のKPI" loading="lazy" class="w-full max-w-[280px] md:max-w-md mix-blend-multiply drop-shadow-sm">
-                    </div>
-
-                    <div class="hidden md:block w-full border-t border-b border-gray-200 py-16">
-                        <div class="tategaki h-[420px] text-lg leading-loose tracking-widest text-gray-800 font-medium mx-auto text-justify" style="line-height: 2.8;">
-                            遥か高みにある「野望」というゴール。<br><br>
-                            そこに到達するための道標こそが、<br>
-                            日々のKPIだ。<br><br>
-                            成功だけを数えても、人は育たない。<br>
-                            挑戦し、躓き、また立ち上がる。<br><br>
-                            その「失敗」の数だけ、私は強くなる。<br>
-                            泥臭く積み上げた数字の向こう側に、<br>
-                            まだ見ぬ景色が待っている。
-                        </div>
-                    </div>
-
-                    <div class="md:hidden w-full border-t border-b border-gray-200 py-10 px-4">
-                        <div class="text-center text-[15px] leading-loose tracking-wider text-gray-800 font-medium space-y-8 break-keep">
-                            <p>
-                                遥か高みにある<br>
-                                「野望」というゴール。<br>
-                                そこに到達するための道標こそが、<br>
-                                日々のKPIだ。
-                            </p>
-                            <p>
-                                成功だけを数えても、人は育たない。<br>
-                                挑戦し、躓き、また立ち上がる。<br>
-                                その「失敗」の数だけ、<br>
-                                私は強くなる。
-                            </p>
-                            <p>
-                                泥臭く積み上げた<br>
-                                数字の向こう側に、<br>
-                                まだ見ぬ景色が待っている。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CAREER SECTION -->
-        <section class="py-24 md:py-32 px-6 max-w-5xl mx-auto">
-            <div class="text-center fade-in-section">
-                <h2 class="section-title">Career History</h2>
-            </div>
-            
-            <div class="mt-12 space-y-8">
-                <article class="flex flex-col md:flex-row border-b border-gray-200 pb-8 hover:bg-gray-50 transition-colors duration-300 p-4 fade-in-section">
-                    <div class="md:w-1/4 mb-2 md:mb-0">
-                        <time class="sans text-[#c5a059] font-medium text-lg">2026.02 - Present</time>
-                    </div>
-                    <div class="md:w-3/4">
-                        <h3 class="text-xl font-medium mb-3 mt-1 md:mt-0">入稿オペレーター見習い</h3>
-                        <p class="text-sm text-gray-600 leading-loose">
-                            デジタルマーケティングの最前線にて、広告入稿の精度とスピードを追求。
-                            クライアントの大切な予算を預かる責任感を胸に、AI活用による業務効率化も研究中。
-                        </p>
-                    </div>
-                </article>
-
-                <article class="flex flex-col md:flex-row border-b border-gray-200 pb-8 hover:bg-gray-50 transition-colors duration-300 p-4 fade-in-section">
-                    <div class="md:w-1/4 mb-2 md:mb-0">
-                        <time class="sans text-gray-400 text-lg">2025.11 - 2026.02</time>
-                    </div>
-                    <div class="md:w-3/4">
-                        <h3 class="text-xl font-medium mb-3 mt-1 md:mt-0 text-gray-700">初期研修・実践研修 修了</h3>
-                        <p class="text-sm text-gray-600 leading-loose">
-                            介護ソフトメーカー勤務を経て、業界未経験でWEB広告代理店に入社。
-                            基礎を徹底的に叩き込み、次なる飛躍への土台を構築。
-                        </p>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <!-- ★ 新生・AMBITION SECTION ★ -->
-        <section class="py-32 bg-[#0a0a0a] text-white relative overflow-hidden" id="ambition">
-            <div class="hidden md:block absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#c5a059] rounded-full mix-blend-screen filter blur-[150px] opacity-20 pointer-events-none"></div>
-            <div class="hidden md:block absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#c5a059] rounded-full mix-blend-screen filter blur-[150px] opacity-10 pointer-events-none"></div>
-
-            <div class="max-w-7xl mx-auto px-6 relative z-10">
-                <div class="text-center mb-24 fade-in-section">
-                    <span class="text-[#c5a059] text-sm tracking-[0.4em] block mb-4 sans uppercase">Ambition</span>
-                    <h2 class="text-4xl md:text-5xl font-medium tracking-widest section-title-gold relative inline-block">
-                        野望
-                    </h2>
-                    <p class="mt-12 text-gray-300 text-sm md:text-base leading-loose max-w-2xl mx-auto">
-                        「作業者」では終わらない。<br>
-                        経営を支える唯一無二のパートナーへ。
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-                    
-                    <!-- 1. マーケティング＆セールス -->
-                    <div class="group relative p-[1px] bg-gradient-to-b from-gray-800 to-transparent hover:from-[#c5a059] hover:shadow-[0_0_40px_rgba(197,160,89,0.2)] transition-all duration-700 fade-in-section">
-                        <div class="bg-[#111111] h-full p-8 md:p-10 flex flex-col justify-start relative overflow-hidden">
-                            <div class="relative z-10">
-                                <span class="text-[#c5a059] text-5xl font-light mb-6 block opacity-40 group-hover:opacity-100 transition-opacity en-font">01</span>
-                                <!-- タイトルサイズを小さくし、キーワードを金色の発光で強調 -->
-                                <h3 class="text-lg md:text-xl font-medium mb-3 tracking-widest text-white leading-tight">
-                                    <span class="text-[#c5a059] drop-shadow-[0_0_12px_rgba(197,160,89,0.9)] font-bold">スーパー営業マン</span><br class="hidden md:block">になる
-                                </h3>
-                                <span class="text-[10px] text-[#c5a059] opacity-70 en-font uppercase tracking-[0.2em] block mb-4">Super Sales</span>
-                                <p class="text-gray-400 text-sm leading-loose text-justify">
-                                    WEB広告運用に留まらず、ウェブマーケティング全体を俯瞰。顧客の経営課題を共に解決し、事業成長を牽引するパートナーとなる。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. クリエイター視点 -->
-                    <div class="group relative p-[1px] bg-gradient-to-b from-gray-800 to-transparent hover:from-[#c5a059] hover:shadow-[0_0_40px_rgba(197,160,89,0.2)] transition-all duration-700 fade-in-section delay-100">
-                        <div class="bg-[#111111] h-full p-8 md:p-10 flex flex-col justify-start relative overflow-hidden">
-                            <div class="relative z-10">
-                                <span class="text-[#c5a059] text-5xl font-light mb-6 block opacity-40 group-hover:opacity-100 transition-opacity en-font">02</span>
-                                <!-- タイトルサイズを小さくし、キーワードを金色の発光で強調 -->
-                                <h3 class="text-lg md:text-xl font-medium mb-3 tracking-widest text-white leading-tight">
-                                    <span class="text-[#c5a059] drop-shadow-[0_0_12px_rgba(197,160,89,0.9)] font-bold">クリエイター</span>の<br class="hidden md:block">目を持つ
-                                </h3>
-                                <span class="text-[10px] text-[#c5a059] opacity-70 en-font uppercase tracking-[0.2em] block mb-4">Creator's Perspective</span>
-                                <p class="text-gray-400 text-sm leading-loose text-justify">
-                                    LP作成、写真撮影、動画制作など、自らの手を動かしクリエイターとなる。現場視点を持つからこそ描ける、解像度の高いディレクションを提供する。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. AIによるスケール -->
-                    <div class="group relative p-[1px] bg-gradient-to-b from-gray-800 to-transparent hover:from-[#c5a059] hover:shadow-[0_0_40px_rgba(197,160,89,0.2)] transition-all duration-700 fade-in-section delay-200">
-                        <div class="bg-[#111111] h-full p-8 md:p-10 flex flex-col justify-start relative overflow-hidden">
-                            <div class="relative z-10">
-                                <span class="text-[#c5a059] text-5xl font-light mb-6 block opacity-40 group-hover:opacity-100 transition-opacity en-font">03</span>
-                                <!-- タイトルサイズを小さくし、キーワードを金色の発光で強調 -->
-                                <h3 class="text-lg md:text-xl font-medium mb-3 tracking-widest text-white leading-tight">
-                                    <span class="text-[#c5a059] drop-shadow-[0_0_12px_rgba(197,160,89,0.9)] font-bold">AI</span>で能力を<br class="hidden md:block">最大化させる
-                                </h3>
-                                <span class="text-[10px] text-[#c5a059] opacity-70 en-font uppercase tracking-[0.2em] block mb-4">Maximize by AI</span>
-                                <p class="text-gray-400 text-sm leading-loose text-justify">
-                                    個人のスキルと経験を、AIの力で劇的にスケールさせる。最新技術を駆使し、圧倒的な品質と速度を伴う次世代のビジネスモデルを提案する。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- ★ クリエイティブポートフォリオへの特大CTA ★ -->
-        <section id="creative-portfolio" class="relative py-48 overflow-hidden cursor-pointer group fade-in-section bg-scroll md:bg-fixed" style="background-image: url('P52502152.jpg'); background-position: center; background-size: cover;" onclick="window.open('https://nakazu201-oss.github.io/C-portfolio/', '_blank', 'noopener,noreferrer')">
-            
-            <!-- 上下の細いゴールドライン装飾 -->
-            <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c5a059] to-transparent opacity-50"></div>
-            <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c5a059] to-transparent opacity-50"></div>
-
-            <!-- ダークオーバーレイ（ホバーで少し明るく） -->
-            <div class="absolute inset-0 bg-[#0a0a0a]/90 group-hover:bg-[#0a0a0a]/70 transition-colors duration-700"></div>
-
-            <div class="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
-                <span class="text-[#c5a059] text-xs tracking-[0.5em] mb-6 sans uppercase block transform translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">Explore My Works</span>
-                
-                <!-- テキストに光彩効果（ドロップシャドウ）を追加 -->
-                <h2 class="text-5xl md:text-7xl font-medium tracking-widest text-white mb-8 en-font drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] group-hover:drop-shadow-[0_0_25px_rgba(197,160,89,0.6)] transition-all duration-500">
-                    Creative Portfolio
-                </h2>
-                
-                <p class="text-gray-300 text-sm md:text-base leading-loose max-w-2xl mx-auto mb-16 opacity-80 group-hover:opacity-100 transition-opacity">
-                    ビジネスを加速させるクリエイティブの軌跡。<br class="md:hidden">
-            
-                </p>
-
-                <!-- ★ 進化した「思わず押したくなる」ボタン ★ -->
-                <div class="relative inline-block group/btn">
-                    <!-- 常に背後で鼓動する光（パルスエフェクトで視線を誘導） -->
-                    <div class="absolute inset-0 bg-[#c5a059] blur-xl opacity-30 animate-pulse rounded-sm group-hover/btn:opacity-60 transition-opacity duration-500"></div>
-                    
-                    <!-- ボタン本体 -->
-                    <div class="relative flex items-center bg-[#c5a059] text-[#111111] transition-all duration-300 transform group-hover/btn:-translate-y-1 group-hover/btn:shadow-[0_15px_30px_-10px_rgba(197,160,89,0.6)] active:translate-y-0 active:scale-95 overflow-hidden">
-                        
-                        <!-- ホバー時の光沢スライドエフェクト -->
-                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent transform -translate-x-full group-hover/btn:animate-[shimmer_1s_ease-in-out]"></div>
-
-                        <!-- 左側：テキストエリア -->
-                        <div class="px-8 md:px-12 py-5 font-medium tracking-[0.2em] text-sm uppercase relative z-10">
-                            View All Works
-                        </div>
-                        
-                        <!-- 右側：アクセント＆矢印エリア（色が少し濃い） -->
-                        <div class="bg-[#a88645] px-6 py-5 flex items-center justify-center relative z-10 transition-colors duration-300 group-hover/btn:bg-[#111111] group-hover/btn:text-[#c5a059]">
-                            <span class="transform transition-transform duration-500 group-hover/btn:translate-x-2 text-lg">→</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <style>
-                @keyframes shimmer {
-                    100% { transform: translateX(100%); }
-                }
-            </style>
-        </section>
-
-        <!-- FOOTER -->
-        <footer class="bg-white py-12 px-6 text-center border-t border-gray-100 relative">
-            <div class="fade-in-section flex flex-col items-center">
-                
-                <!-- ★ トップに戻るボタン ★ -->
-                <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="mb-16 group flex flex-col items-center justify-center focus:outline-none">
-                    <span class="text-gray-400 group-hover:text-[#111111] transition-colors duration-300 text-xl mb-2 transform group-hover:-translate-y-1">↑</span>
-                    <span class="text-[10px] tracking-[0.3em] text-gray-400 group-hover:text-[#111111] transition-colors duration-300 en-font uppercase relative">
-                        Back to Top
-                        <span class="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-[#111111] transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+                <div class="mt-auto">
+                    <span class="inline-flex items-center text-[10px] text-[#c5a059] sans tracking-widest group-hover:underline underline-offset-4">
+                        VIEW WORKS 
+                        <svg class="w-3 h-3 ml-1 transition-transform group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </span>
-                </button>
+                </div>
+            </a>
 
-                <img src="profile2.JPG" alt="Icon" loading="lazy" class="w-10 h-10 rounded-full grayscale opacity-50 mb-4 object-cover">
-                <p class="text-[10px] text-gray-400 tracking-widest sans">
-                    &copy; 2026 KAZUKI NAKAI. All Rights Reserved.
+            <!-- Category: Videography -->
+            <div class="flex flex-col h-full border border-gray-200 bg-gray-50 p-8 md:p-10 text-center opacity-80">
+                <span class="text-gray-400 text-[10px] tracking-[0.3em] sans uppercase mb-3 block">Category 02</span>
+                <h3 class="text-xl md:text-2xl tracking-[0.15em] text-gray-400 mb-5">Videography</h3>
+                <p class="text-[11px] md:text-xs text-gray-400 tracking-[0.1em] leading-[2.2] sans mb-8 flex-grow">
+                    時間の流れと音を紡ぎ、<br>
+                    記憶に残る映像体験を<br class="block md:hidden">構築します。
                 </p>
+                <div class="mt-auto">
+                    <span class="inline-block px-5 py-2 bg-gray-200 text-gray-500 text-[9px] tracking-widest sans uppercase rounded-sm">
+                        Coming Soon
+                    </span>
+                </div>
             </div>
-        </footer>
 
-    </main>
+            <!-- Category: Web Design -->
+            <div class="flex flex-col h-full border border-[#c5a059]/30 bg-white p-8 md:p-10 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-[#c5a059]/10">
+                <span class="text-[#c5a059] text-[10px] tracking-[0.3em] sans uppercase mb-3 block">Category 03</span>
+                <h3 class="text-xl md:text-2xl tracking-[0.15em] mb-5 text-gray-800">Web Design</h3>
+                <p class="text-[11px] md:text-xs text-gray-500 tracking-[0.1em] leading-[2.2] sans mb-8 flex-grow">
+                    UI/UXを意識したデザインと<br class="block lg:hidden">コーディング。<br>
+                    ご覧のサイト自体が、<br class="block md:hidden">私自身が制作した実績の一つです。
+                </p>
+                <div class="mt-auto">
+                    <span class="inline-block px-5 py-2 bg-[#c5a059]/10 text-[#c5a059] border border-[#c5a059]/20 text-[9px] tracking-widest sans uppercase rounded-sm">
+                        You are here
+                    </span>
+                </div>
+            </div>
 
-    <!-- ★ 画面下部追従ボタン（フローティングナビゲーション） ★ -->
-    <div id="floating-banner" class="fixed bottom-0 left-0 w-full bg-[#111111]/85 backdrop-blur-md border-t border-[#c5a059]/30 z-[100] py-3 px-6 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 transform translate-y-0 opacity-100">
-        <div class="max-w-4xl mx-auto flex justify-center items-center">
-            <!-- aタグではなくbuttonタグを使うことで、スマホブラウザ特有の「URLハッシュによるジャンプバグ」を完全回避 -->
-            <button id="floating-link" class="flex items-center space-x-3 group py-2 focus:outline-none">
-                <span class="text-xs md:text-sm text-gray-300 tracking-[0.2em] group-hover:text-[#c5a059] transition-colors font-medium">クリエイティブポートフォリオはこちら</span>
-                <span class="text-[#c5a059] text-lg font-bold animate-bounce mt-1">↓</span>
-            </button>
         </div>
-    </div>
+    </section>
+    <!-- ▲▲ 第0セクション ここまで ▲▲ -->
+
+    <!-- ▼▼ 第1セクション：静物（STILL LIFE / ここから黒系背景） ▼▼ -->
+    <section class="portfolio-section" id="slider1">
+        <div class="title-overlay">
+            <h1 class="text-[10px] md:text-xs tracking-[0.5em] md:tracking-[0.8em] uppercase text-gray-500 sans">
+                Photography Archive
+            </h1>
+            <div class="w-[1px] h-6 bg-[#c5a059] mx-auto mt-3 opacity-50 md:block hidden"></div>
+        </div>
+
+        <div class="category-info">
+            <div class="flex items-center gap-3 mb-2 justify-center md:justify-start">
+                <span class="w-6 h-[1px] bg-[#c5a059]"></span>
+                <span class="text-[#c5a059] text-[9px] md:text-[10px] tracking-[0.4em] sans uppercase">Photography</span>
+                <span class="w-6 h-[1px] bg-[#c5a059]"></span>
+            </div>
+            <h2 class="text-2xl md:text-4xl font-medium tracking-[0.2em] text-gray-100 mb-3 md:mb-4">STILL LIFE<span class="block text-[10px] md:text-xs text-gray-500 tracking-[0.5em] mt-1 sans md:inline md:ml-4">- 静物 -</span></h2>
+            <p class="text-[10px] md:text-xs text-gray-400 tracking-[0.2em] leading-loose sans text-center md:text-left">
+                素材の呼吸を聴き、隠された表情を引き出す。<br>
+                質感、温度、そこに宿る物語。<br>
+                光と影の対話が、物の本質を浮き彫りにする。
+            </p>
+        </div>
+
+        <div class="slider-viewport">
+            <button class="nav-arrow arrow-left" aria-label="Previous">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            <!-- data-initial-index="2" で配列の2番目(mono12.jpg)を初期表示に設定 -->
+            <div class="slider-track" data-initial-index="2">
+                <div class="slide"><img src="mono2.jpg" alt="作品 2" onerror="this.src='https://placehold.co/400x600/1a1a1a/c5a059?text=Photo+1'"></div>
+                <div class="slide"><img src="mono11.jpg" alt="作品 11" onerror="this.src='https://placehold.co/600x400/1a1a1a/c5a059?text=Photo+2'"></div> 
+                <div class="slide"><img src="mono12.jpg" alt="作品 12" onerror="this.src='https://placehold.co/500x500/1a1a1a/c5a059?text=Photo+3'"></div>
+                <div class="slide"><img src="mono6.jpg" alt="作品 6" onerror="this.src='https://placehold.co/400x500/1a1a1a/c5a059?text=Photo+4'"></div>
+                <div class="slide"><img src="mono9.jpg" alt="作品 9" onerror="this.src='https://placehold.co/600x400/1a1a1a/c5a059?text=Photo+5'"></div>
+                <div class="slide"><img src="mono13.jpg" alt="作品 13" onerror="this.src='https://placehold.co/400x600/1a1a1a/c5a059?text=Photo+6'"></div>
+            </div>
+
+            <button class="nav-arrow arrow-right" aria-label="Next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <div class="dots"></div>
+        </div>
+    </section>
+    <!-- ▲▲ 第1セクション ここまで ▲▲ -->
+
+    <!-- ▼▼ 第2セクション：人物（PORTRAIT） ▼▼ -->
+    <section class="portfolio-section" id="slider2">
+        <div class="title-overlay">
+            <div class="w-[1px] h-12 bg-[#c5a059] mx-auto mt-0 opacity-30 md:block hidden"></div>
+        </div>
+
+        <div class="category-info">
+            <div class="flex items-center gap-3 mb-2 justify-center md:justify-start">
+                <span class="w-6 h-[1px] bg-[#c5a059]"></span>
+                <span class="text-[#c5a059] text-[9px] md:text-[10px] tracking-[0.4em] sans uppercase">Photography</span>
+                <span class="w-6 h-[1px] bg-[#c5a059]"></span>
+            </div>
+            <h2 class="text-2xl md:text-4xl font-medium tracking-[0.2em] text-gray-100 mb-3 md:mb-4">PORTRAIT<span class="block text-[10px] md:text-xs text-gray-500 tracking-[0.5em] mt-1 sans md:inline md:ml-4">- 人物 -</span></h2>
+            <p class="text-[10px] md:text-xs text-gray-400 tracking-[0.2em] leading-loose sans text-center md:text-left">
+                その瞬間にしかない感情を、光の中に閉じ込める。<br>
+                瞳の奥に宿る真実、かすかな息遣い。<br>
+                レンズ越しに交わす、言葉なき対話。
+            </p>
+        </div>
+
+        <div class="slider-viewport">
+            <button class="nav-arrow arrow-left" aria-label="Previous">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            <!-- data-initial-index="3" で配列の3番目(pt8.jpg)を初期表示に設定 -->
+            <div class="slider-track" data-initial-index="3">
+                <div class="slide"><img src="pt0.jpg" alt="ポートレート 0" onerror="this.src='https://placehold.co/400x600/1a1a1a/c5a059?text=Portrait+1'"></div>
+                <div class="slide"><img src="pt3.jpg" alt="ポートレート 3" onerror="this.src='https://placehold.co/600x400/1a1a1a/c5a059?text=Portrait+2'"></div> 
+                <div class="slide"><img src="pt13.jpg" alt="ポートレート 13" onerror="this.src='https://placehold.co/500x500/1a1a1a/c5a059?text=Portrait+3'"></div>
+                <!-- ★ここを修正しました (pt8.jPG -> pt8.jpg) -->
+                <div class="slide"><img src="pt8.jpg" alt="ポートレート 8" onerror="this.src='https://placehold.co/400x500/1a1a1a/c5a059?text=Portrait+4'"></div>
+                <div class="slide"><img src="pt12.jpg" alt="ポートレート 12" onerror="this.src='https://placehold.co/600x400/1a1a1a/c5a059?text=Portrait+5'"></div>
+                <!-- ★ここを修正しました (pt6.jPG -> pt6.jpg) -->
+                <div class="slide"><img src="pt6.jpg" alt="ポートレート 6" onerror="this.src='https://placehold.co/400x600/1a1a1a/c5a059?text=Portrait+6'"></div>
+                <div class="slide"><img src="pt16.jpg" alt="ポートレート 16" onerror="this.src='https://placehold.co/500x600/1a1a1a/c5a059?text=Portrait+7'"></div>
+            </div>
+
+            <button class="nav-arrow arrow-right" aria-label="Next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <div class="dots"></div>
+        </div>
+    </section>
+    <!-- ▲▲ 第2セクション ここまで ▲▲ -->
 
     <script>
-        // 【修正】ブラウザのジャンプ履歴を完全に無効化
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
-        }
+        // ページ内のすべてのポートフォリオセクション（スライダーがあるもの）を取得
+        const sections = document.querySelectorAll('.portfolio-section:not(.hero-bg)');
 
-        // 【追加】URLに余計な「#creative-portfolio」などが付いていたら消去してジャンプを封じる
-        if (window.location.hash) {
-            window.history.replaceState(null, null, window.location.pathname + window.location.search);
-        }
+        // 各セクションごとにスライダーの機能を設定
+        sections.forEach((section) => {
+            const track = section.querySelector('.slider-track');
+            if(!track) return; // スライダーがないセクションはスキップ
 
-        // 【追加】少し遅延させて強制的に一番上に戻す（WebView特有の遅延ジャンプ対策）
-        setTimeout(() => { window.scrollTo(0, 0); }, 50);
-        setTimeout(() => { window.scrollTo(0, 0); }, 200);
+            const slides = section.querySelectorAll('.slide');
+            const dotsContainer = section.querySelector('.dots');
+            const prevBtn = section.querySelector('.arrow-left');
+            const nextBtn = section.querySelector('.arrow-right');
+            const sliderViewport = section.querySelector('.slider-viewport');
+            
+            // HTMLの data-initial-index 属性から初期表示の番号を取得。設定がなければ真ん中にする
+            const initialData = parseInt(track.dataset.initialIndex, 10);
+            let currentIndex = isNaN(initialData) ? Math.floor(slides.length / 2) : initialData;
+            let dots = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // オープニング演出
-            const curtain = document.getElementById('opening-curtain');
-            const profileImg = document.getElementById('profile-img');
+            // ドットの生成
+            slides.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                dot.addEventListener('click', () => {
+                    currentIndex = i;
+                    updateSlider();
+                });
+                dotsContainer.appendChild(dot);
+                dots.push(dot);
+            });
 
-            setTimeout(() => {
-                if(curtain) curtain.classList.add('hidden-curtain');
-            }, 2000);
+            function updateSlider() {
+                const rootStyles = getComputedStyle(document.documentElement);
+                const slideWidthVW = parseFloat(rootStyles.getPropertyValue('--slide-width'));
+                const slideMarginVW = parseFloat(rootStyles.getPropertyValue('--slide-margin'));
+                
+                const totalSlideWidthVW = slideWidthVW + (slideMarginVW * 2);
+                const centerOffsetVW = (100 - totalSlideWidthVW) / 2;
+                const targetX = -(currentIndex * totalSlideWidthVW) + centerOffsetVW;
+                
+                track.style.transform = `translateX(${targetX}vw)`;
 
-            setTimeout(() => {
-                if(profileImg) {
-                    profileImg.classList.remove('grayscale');
+                slides.forEach((slide, index) => {
+                    const isActive = index === currentIndex;
+                    slide.classList.toggle('active', isActive);
+                    dots[index].classList.toggle('active', isActive);
+                });
+            }
+
+            function moveSlide(direction) {
+                currentIndex += direction;
+                if (currentIndex < 0) {
+                    currentIndex = slides.length - 1;
+                } else if (currentIndex >= slides.length) {
+                    currentIndex = 0;
                 }
-            }, 2500);
-
-            // スクロール監視（ふわっと表示）
-            const observerOptions = {
-                root: null,
-                rootMargin: '100px 0px',
-                threshold: 0.1
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            const fadeElements = document.querySelectorAll('.fade-in-section');
-            fadeElements.forEach(el => observer.observe(el));
-
-            // 安全装置（フォールバック）
-            setTimeout(() => {
-                fadeElements.forEach(el => {
-                    el.classList.add('is-visible');
-                });
-            }, 3500);
-
-            // ★ 追従バナーのスクロール制御（JSのみで移動） ★
-            const floatingLink = document.getElementById('floating-link');
-            if (floatingLink) {
-                floatingLink.addEventListener('click', () => {
-                    const target = document.getElementById('creative-portfolio');
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
+                updateSlider();
             }
 
-            // ★ 追従バナーの表示/非表示制御 ★
-            const floatingBanner = document.getElementById('floating-banner');
-            const creativePortfolioSection = document.getElementById('creative-portfolio');
+            // ボタンのクリックイベント
+            prevBtn.addEventListener('click', () => moveSlide(-1));
+            nextBtn.addEventListener('click', () => moveSlide(1));
 
-            if (floatingBanner && creativePortfolioSection) {
-                const bannerObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            // Creative Portfolioセクションが見えたらバナーを下に隠す
-                            floatingBanner.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
-                        } else {
-                            // 見えなくなったらバナーを再表示
-                            floatingBanner.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
-                        }
-                    });
-                }, {
-                    root: null,
-                    rootMargin: '0px',
-                    threshold: 0.05 // 5%でも見えたら発火
+            // 初回表示のセットアップ
+            updateSlider();
+            
+            // 画面サイズ変更時の再計算
+            window.addEventListener('resize', () => {
+                setTimeout(updateSlider, 100);
+            });
+
+            // スワイプ操作（スマホ対応）
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            sliderViewport.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            sliderViewport.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                const threshold = 50; 
+                if (touchEndX < touchStartX - threshold) moveSlide(1);
+                if (touchEndX > touchStartX + threshold) moveSlide(-1);
+            }, {passive: true});
+        });
+
+        // スムーススクロール（Photographyクリック用）
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
                 });
-
-                bannerObserver.observe(creativePortfolioSection);
-            }
+            });
         });
     </script>
 </body>
